@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.7'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.jgg'
+version = '0.0.1-SNAPSHOT'
+description = '공공 API 개인 프로젝트'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // XML 파싱 (데이터 손질)을 위한 부품 추가
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+
+    // Swagger/OpenAPI 설정 추가
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // --------------------------------------------------------------------------------
+    // !!! DB 관련 부품 제거 (API 통신 오류 방지) !!!
+    // implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5' // 삭제됨
+    // runtimeOnly 'org.mariadb.jdbc:mariadb-java-client' // 삭제됨
+    // testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.5' // 삭제됨
+    // --------------------------------------------------------------------------------
+
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
