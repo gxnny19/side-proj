@@ -29,7 +29,7 @@ public class OnbidController {
             @RequestParam(required = false) String sgk,
             @RequestParam(required = false) String openPriceFrom
     ) {
-        // 💡 4. Service를 호출하고, 손님(브라우저)에게 결과를 돌려줍니다.
+        // 💡 4. Service를 호출하고, 손님(브라우저)에게 결과를돌려줍니다.
         return onbidService.searchOnbidItems(sido, sgk, openPriceFrom);
     }
 }
