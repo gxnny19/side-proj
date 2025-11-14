@@ -1,55 +1,92 @@
 package com.jgg.side_proj.service;
 
-import com.jgg.side_proj.model.OnbidResponse;
+import com.jgg.side_proj.dto.KamcoApiResponse;
+import com.jgg.side_proj.dto.KamcoItemDto;
+import com.jgg.side_proj.entity.OnbidEntity;
+import com.jgg.side_proj.mapper.OnbidMapper;
+import com.jgg.side_proj.repository.OnbidRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class OnbidService {
 
+    private static final Logger logger = LoggerFactory.getLogger(OnbidService.class);
+    
     @Value("${api.camco.serviceKey}")
     private String serviceKey;
 
     private final RestTemplate restTemplate;
+    private final OnbidRepository repository;
+    private final OnbidMapper mapper;
 
-    public OnbidService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+
+    
+    public int saveItems(String sido) {
+        try {
+            String baseUrl = "http://openapi.onbid.co.kr/openapi/services/kamcoPbsalThingInquireSvc/getKamcoPbctCltrList";
+
+            String url = UriComponentsBuilder.fromUriString(baseUrl)
+                    .queryParam("serviceKey", serviceKey)
+                    .queryParam("numOfRows", 100)
+                    .queryParam("pageNo", 1)
+                    .queryParam("DPSL_MTD_CD", "0001")
+                    .queryParam("CTGR_HIRK_ID", "10000")
+                    .queryParam("CTGR_HIRK_ID_MID", "10100")
+                    .queryParam("SIDO", sido)
+                    .build()
+                    .encode()
+                    .toUriString();
+
+            logger.info("API URL: {}", url);
+            
+            String xmlResponse = restTemplate.getForObject(url, String.class);
+            logger.info("XML Response: {}", xmlResponse);
+            
+            KamcoApiResponse response = restTemplate.getForObject(url, KamcoApiResponse.class);
+            logger.info("Parsed Response: {}", response);
+
+            if (response == null ||
+                    response.getBody() == null ||
+                    response.getBody().getItems() == null ||
+                    response.getBody().getItems().getItem() == null) {
+                logger.warn("API 응답이 비어있습니다: {}", sido);
+                return 0;
+            }
+
+            List<KamcoItemDto> list = response.getBody().getItems().getItem();
+
+            int count = 0;
+            for (KamcoItemDto dto : list) {
+                // 중복 체크
+                if (!repository.existsByCltrMnmtNo(dto.getCltrMnmtNo())) {
+                    OnbidEntity entity = mapper.toEntity(dto);
+                    repository.save(entity);
+                    count++;
+                } else {
+                    logger.debug("중복 데이터 스킵: {}", dto.getCltrMnmtNo());
+                }
+            }
+            return count;
+        } catch (Exception e) {
+            logger.error("온비드 API 호출 오류: {}", e.getMessage());
+            return 0;
+        }
     }
-
-    public OnbidResponse searchOnbidItems(String sido, String sgk, String openPriceFrom) {
-
-        String baseUrl = "http://openapi.onbid.co.kr/openapi/services/kamcoPbsalThingInquireSvc/getKamcoPbctCltrList";
-
-        // Spring의 UriComponentsBuilder에 모든 파라미터를 추가합니다.
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(baseUrl)
-                // 1. serviceKey를 포함합니다.
-                .queryParam("serviceKey", serviceKey)
-                .queryParam("numOfRows", 10)
-                .queryParam("pageNo", 1)
-
-                // 2. 숨겨진 필수 변수: API가 내부적으로 요구하는 화면/스크린 ID 추가
-                .queryParam("SCRN_ID", "LPMN101M001")
-                .queryParam("SCRN_NM", "온비드 공매정보")
-
-                // 3. 필수 검색 조건: 매각 방식 및 물건 분류 코드
-                .queryParam("DPSL_MTD_CD", "0001")
-                .queryParam("CTGR_HIRK_ID", "10000")
-                .queryParam("CTGR_HIRK_ID_MID", "10100")
-
-                // 사용자가 입력한 검색 조건
-                .queryParam("SIDO", sido)
-                .queryParam("SGK", sgk)
-                .queryParam("OPEN_PRICE_FROM", openPriceFrom);
-
-        // build().encode().toUriString()이 모든 파라미터를 UTF-8로 인코딩합니다. (URL 인코딩 최종 해결)
-        String url = builder.build().encode().toUriString();
-
-        System.out.println("🚨 최종 API 요청 URL: " + url); // <-- 이 URL이 최종 진단용입니다.
-
-        OnbidResponse result = restTemplate.getForObject(url, OnbidResponse.class);
-
-        return result;
+    
+    public void fetchAndSaveOnbidData() {
+        saveItems("경상북도");
+    }
+    
+    public List<OnbidEntity> getAllItems() {
+        return repository.findAll();
     }
 }
