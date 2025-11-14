@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>지역별 공매 정보 검색</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            background-color: #f5f5f5; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 40px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        h1 { 
+            color: #333; 
+            text-align: center; 
+            margin-bottom: 30px; 
+        }
+        .search-section { 
+            text-align: center; 
+            margin-bottom: 30px; 
+        }
+        .btn { 
+            display: inline-block; 
+            padding: 15px 30px; 
+            margin: 10px; 
+            background: #007bff; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            border: none; 
+        }
+        .btn:hover { 
+            background: #0056b3; 
+        }
+        .results { 
+            margin-top: 30px; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+        }
+        th, td { 
+            padding: 12px; 
+            text-align: left; 
+            border-bottom: 1px solid #ddd; 
+        }
+        th { 
+            background-color: #f8f9fa; 
+            font-weight: bold; 
+        }
+        tr:hover { 
+            background-color: #f5f5f5; 
+        }
+        .loading { 
+            text-align: center; 
+            padding: 20px; 
+            color: #666; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>지역별 공매 정보 검색</h1>
+        
+        <div class="search-section">
+            <button class="btn" onclick="searchBySido('경상북도')">경상북도 검색</button>
+            <button class="btn" onclick="searchBySido('서울특별시')">서울특별시 검색</button>
+            <button class="btn" onclick="searchBySido('경기도')">경기도 검색</button>
+            <button class="btn" onclick="searchBySido('부산광역시')">부산광역시 검색</button>
+        </div>
+        
+        <div id="results" class="results"></div>
+    </div>
+    
+    <script>
+        function searchBySido(sido) {
+            document.getElementById('results').innerHTML = '<div class="loading">검색 중...</div>';
+            
+            fetch('/search?sido=' + encodeURIComponent(sido))
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(sido, data);
+                })
+                .catch(error => {
+                    document.getElementById('results').innerHTML = '<div class="loading">검색 중 오류가 발생했습니다.</div>';
+                });
+        }
+        
+        function displayResults(sido, data) {
+            let html = '<h2>' + sido + ' 검색 결과</h2>';
+            
+            if (data.body && data.body.items && data.body.items.item && data.body.items.item.length > 0) {
+                html += '<p>총 ' + data.body.items.item.length + '개의 결과를 찾았습니다.</p>';
+                html += '<table><thead><tr><th>물건관리번호</th><th>시도</th><th>최저입찰가</th></tr></thead><tbody>';
+                
+                data.body.items.item.forEach(function(item) {
+                    html += '<tr>';
+                    html += '<td>' + (item.cltrMnmtNo || '-') + '</td>';
+                    html += '<td>' + (item.sido || '-') + '</td>';
+                    html += '<td>' + (item.minBidPrc || '-') + '</td>';
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table>';
+            } else {
+                html += '<p>검색 결과가 없습니다.</p>';
+            }
+            
+            document.getElementById('results').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
