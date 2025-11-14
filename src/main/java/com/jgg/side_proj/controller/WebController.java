@@ -1,6 +1,6 @@
 package com.jgg.side_proj.controller;
 
-import com.jgg.side_proj.entity.OnbidEntity;
+import com.jgg.side_proj.model.OnbidItem;
 import com.jgg.side_proj.service.OnbidService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -23,12 +23,16 @@ public class WebController {
     
     @GetMapping("/data")
     public String showData(@RequestParam(defaultValue = "경상북도") String sido, Model model) {
+        // 1. API에서 데이터 가져와서 DB에 저장
         int savedCount = onbidService.saveItems(sido);
-        List<OnbidEntity> items = onbidService.getAllItems();
+        
+        // 2. 해당 지역 데이터만 DB에서 조회
+        List<OnbidItem> items = onbidService.getItemsBySido(sido);
         
         model.addAttribute("sido", sido);
         model.addAttribute("savedCount", savedCount);
         model.addAttribute("items", items);
+        model.addAttribute("totalCount", items.size());
         
         return "data";
     }

@@ -27,7 +27,8 @@
         <h1>캠코 공매 정보 조회</h1>
         
         <div class="info-box">
-            <strong th:text="${sido}">지역</strong> 지역에서 <strong th:text="${savedCount}">0</strong>개의 데이터를 저장했습니다.
+            <strong th:text="${sido}">지역</strong> 지역에서 <strong th:text="${savedCount}">0</strong>개의 새 데이터를 저장했습니다.<br>
+            현재 <strong th:text="${totalCount}">0</strong>개의 <strong th:text="${sido}">지역</strong> 데이터가 있습니다.
         </div>
         
         <div class="search-form">
@@ -49,11 +50,11 @@
                     <th>물건관리번호</th>
                     <th>물건명</th>
                     <th>시도</th>
-                    <th>시군구</th>
-                    <th>공고시작일</th>
-                    <th>공고종료일</th>
-                    <th>최저입찰가</th>
-                    <th>상태</th>
+                    <th>상세주소</th>
+                    <th>등록일</th>
+                    <th>수정일</th>
+                    <th>가격</th>
+                    <th>처분방법</th>
                 </tr>
             </thead>
             <tbody>
@@ -61,11 +62,11 @@
                     <td th:text="${item.cltrMnmtNo}">-</td>
                     <td th:text="${item.cltrNm}">-</td>
                     <td th:text="${item.sido}">-</td>
-                    <td th:text="${item.sgk}">-</td>
-                    <td th:text="${item.pbctBegDtm}">-</td>
-                    <td th:text="${item.pbctClsDtm}">-</td>
-                    <td th:text="${item.minBidPrc != null ? #numbers.formatInteger(item.minBidPrc, 0, 'COMMA') + '원' : '-'}">-</td>
-                    <td th:text="${item.pbctClsStatNm}">-</td>
+                    <td th:text="${item.dtlAddr}">-</td>
+                    <td th:text="${item.createdAt}">-</td>
+                    <td th:text="${item.updatedAt}">-</td>
+                    <td th:text="${item.goodsPrice != null ? #numbers.formatInteger(item.goodsPrice, 0, 'COMMA') + '원' : '-'}">-</td>
+                    <td th:text="${item.dpslMtdNm}">-</td>
                 </tr>
             </tbody>
         </table>
