@@ -33,12 +33,8 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    // --------------------------------------------------------------------------------
-    // !!! DB 관련 부품 제거 (API 통신 오류 방지) !!!
-    // implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5' // 삭제됨
-    // runtimeOnly 'org.mariadb.jdbc:mariadb-java-client' // 삭제됨
-    // testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.5' // 삭제됨
-    // --------------------------------------------------------------------------------
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

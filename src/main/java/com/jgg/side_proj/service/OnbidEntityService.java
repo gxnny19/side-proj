@@ -3,9 +3,9 @@ package com.jgg.side_proj.service;
 import com.jgg.side_proj.component.XmlApiClient;
 import com.jgg.side_proj.dto.KamcoApiResponse;
 import com.jgg.side_proj.dto.KamcoItemDto;
-import com.jgg.side_proj.mapper.OnbidDtoMapper;
-import com.jgg.side_proj.mapper.OnbidItemMapper;
-import com.jgg.side_proj.model.OnbidItem;
+import com.jgg.side_proj.entity.OnbidEntity;
+import com.jgg.side_proj.mapper.OnbidEntityDtoMapper;
+import com.jgg.side_proj.mapper.OnbidEntityMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,17 +15,16 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class OnbidService {
+public class OnbidEntityService {
 
-    private static final Logger logger = LoggerFactory.getLogger(OnbidService.class);
+    private static final Logger logger = LoggerFactory.getLogger(OnbidEntityService.class);
     
     private final XmlApiClient xmlApiClient;
-    private final OnbidItemMapper onbidItemMapper;
-    private final OnbidDtoMapper dtoMapper;
+    private final OnbidEntityMapper onbidEntityMapper;
+    private final OnbidEntityDtoMapper dtoMapper;
 
-    public int saveItems(String sido) {
+    public int saveEntities(String sido) {
         try {
-            // 1. API 호출
             KamcoApiResponse response = xmlApiClient.callKamcoApi(sido);
             
             if (response == null || response.getBody() == null || 
@@ -37,33 +36,32 @@ public class OnbidService {
 
             List<KamcoItemDto> items = response.getBody().getItems().getItem();
             
-            // 3. 데이터 변환 및 저장
             int count = 0;
             for (KamcoItemDto dto : items) {
                 if (dto != null && dto.getCltrMnmtNo() != null && 
-                    !onbidItemMapper.existsByCltrMnmtNo(dto.getCltrMnmtNo())) {
-                    OnbidItem item = dtoMapper.toModel(dto);
-                    if (item != null) {
-                        onbidItemMapper.insert(item);
+                    !onbidEntityMapper.existsByCltrMnmtNo(dto.getCltrMnmtNo())) {
+                    OnbidEntity entity = dtoMapper.toEntity(dto);
+                    if (entity != null) {
+                        onbidEntityMapper.insert(entity);
                         count++;
                     }
                 }
             }
             
-            logger.info("{} 지역 {}\uac1c 데이터 저장 완료", sido, count);
+            logger.info("{} 지역 {}개 엔티티 저장 완료", sido, count);
             return count;
             
         } catch (Exception e) {
-            logger.error("{} 지역 데이터 수집 실패: {}", sido, e.getMessage());
+            logger.error("{} 지역 엔티티 수집 실패: {}", sido, e.getMessage());
             return 0;
         }
     }
     
-    public List<OnbidItem> getItemsBySido(String sido) {
-        return onbidItemMapper.findBySido(sido);
+    public List<OnbidEntity> getEntitiesBySido(String sido) {
+        return onbidEntityMapper.findBySido(sido);
     }
     
-    public List<OnbidItem> getAllItems() {
-        return onbidItemMapper.findAll();
+    public List<OnbidEntity> getAllEntities() {
+        return onbidEntityMapper.findAll();
     }
 }

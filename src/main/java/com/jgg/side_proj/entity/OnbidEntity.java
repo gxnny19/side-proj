@@ -1,10 +1,10 @@
-package com.jgg.side_proj.model;
+package com.jgg.side_proj.entity;
 
 import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class OnbidItem {
+public class OnbidEntity {
     private Long id;
     private String cltrMnmtNo;
     private String cltrNo;
