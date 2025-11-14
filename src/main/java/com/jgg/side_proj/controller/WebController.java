@@ -1,7 +1,7 @@
 package com.jgg.side_proj.controller;
 
-import com.jgg.side_proj.model.OnbidItem;
-import com.jgg.side_proj.service.OnbidService;
+import com.jgg.side_proj.service.AccessLogService;
+import com.jgg.side_proj.service.DataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,31 +9,29 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
 public class WebController {
 
-    private final OnbidService onbidService;
+    private final AccessLogService accessLogService;
+    private final DataService dataService;
 
     @GetMapping("/")
     public String index() {
+        accessLogService.logAccess("사용자가 홈페이지에 접근했습니다");
         return "index";
     }
     
-    @GetMapping("/data")
-    public String showData(@RequestParam(defaultValue = "경상북도") String sido, Model model) {
-        // 1. API에서 데이터 가져와서 DB에 저장
-        int savedCount = onbidService.saveItems(sido);
-        
-        // 2. 해당 지역 데이터만 DB에서 조회
-        List<OnbidItem> items = onbidService.getItemsBySido(sido);
+    @GetMapping("/search")
+    public String search(@RequestParam String sido, Model model) {
+        List<Map<String, String>> data = dataService.getDataBySido(sido);
         
         model.addAttribute("sido", sido);
-        model.addAttribute("savedCount", savedCount);
-        model.addAttribute("items", items);
-        model.addAttribute("totalCount", items.size());
+        model.addAttribute("items", data);
+        model.addAttribute("totalCount", data.size());
         
-        return "data";
+        return "search-result";
     }
 }
