@@ -1,121 +1,117 @@
 package com.jgg.side_proj.service;
 
-import com.jgg.side_proj.dto.OnbidItemDto;
+import com.jgg.side_proj.dto.KamcoApiResponse;
+import com.jgg.side_proj.dto.KamcoItemDto;
 import com.jgg.side_proj.entity.OnbidEntity;
-import com.jgg.side_proj.model.OnbidItem;
-import com.jgg.side_proj.model.OnbidResponse;
+import com.jgg.side_proj.mapper.KamcoMapper;
 import com.jgg.side_proj.repository.OnbidRepository;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class OnbidService {
 
-    private static final Logger logger = LoggerFactory.getLogger(OnbidService.class);
-    
     @Value("${api.camco.serviceKey}")
     private String serviceKey;
 
     private final RestTemplate restTemplate;
     private final OnbidRepository repository;
+    private final KamcoMapper mapper;
 
-    public int saveItems(String sido) {
+    public OnbidService(RestTemplate restTemplate, OnbidRepository repository, KamcoMapper mapper) {
+        this.restTemplate = restTemplate;
+        this.repository = repository;
+        this.mapper = mapper;
+    }
+
+    public KamcoApiResponse search(com.jgg.side_proj.dto.SearchRequestDto request) {
+        String baseUrl = "http://openapi.onbid.co.kr/openapi/services/KamcoPblsalThingInquireSvc/getKamcoPbctCltrList";
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(baseUrl)
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("numOfRows", request.getNumOfRows())
+                .queryParam("pageNo", request.getPageNo())
+                .queryParam("DPSL_MTD_CD", request.getDpslMtdCd())
+                .queryParam("CTGR_HIRK_ID", request.getCtgrHirkId())
+                .queryParam("CTGR_HIRK_ID_MID", request.getCtgrHirkIdMid());
+                
+        // 선택적 파라미터들
+        if (request.getSido() != null && !request.getSido().trim().isEmpty()) {
+            builder.queryParam("SIDO", request.getSido());
+        }
+        if (request.getSgk() != null && !request.getSgk().trim().isEmpty()) {
+            builder.queryParam("SGK", request.getSgk());
+        }
+
+        String url = builder.build().encode().toUriString();
+        System.out.println("최종 API URL: " + url);
+        
         try {
-            String baseUrl = "http://openapi.onbid.co.kr/openapi/services/kamcoPbsalThingInquireSvc/getKamcoPbctCltrList";
-
-            String url = UriComponentsBuilder.fromUriString(baseUrl)
-                    .queryParam("serviceKey", serviceKey)
-                    .queryParam("numOfRows", 100)
-                    .queryParam("pageNo", 1)
-                    .queryParam("DPSL_MTD_CD", "0001")
-                    .queryParam("CTGR_HIRK_ID", "10000")
-                    .queryParam("CTGR_HIRK_ID_MID", "10100")
-                    .queryParam("SIDO", sido)
-                    .build()
-                    .encode()
-                    .toUriString();
-
-            logger.info("API URL: {}", url);
-            
             String xmlResponse = restTemplate.getForObject(url, String.class);
-            logger.info("XML Response: {}", xmlResponse);
-            
-            OnbidResponse response = restTemplate.getForObject(url, OnbidResponse.class);
-            logger.info("Parsed Response: {}", response);
-
-            if (response == null ||
-                    response.getBody() == null ||
-                    response.getBody().getItems() == null ||
-                    response.getBody().getItems().getItem() == null) {
-                logger.warn("API 응답이 비어있습니다: {}", sido);
-                return 0;
-            }
-
-            List<OnbidItem> list = response.getBody().getItems().getItem();
-
-            int count = 0;
-            for (OnbidItem dto : list) {
-                OnbidEntity entity = new OnbidEntity();
-                entity.setCltrMnmtNo(dto.getCltrMnmtNo());
-                entity.setCltrNm(dto.getCltrNm());
-                entity.setSido(dto.getSido());
-                entity.setSgk(dto.getSgk());
-                entity.setPbctBegDtm(dto.getPbctBegDtm());
-                entity.setPbctClsDtm(dto.getPbctClsDtm());
-                entity.setMinBidPrc(dto.getMinBidPrc());
-                entity.setCtgrFullNm(dto.getCtgrFullNm());
-                entity.setPaslAssesAvgAmt(dto.getPaslAssesAvgAmt());
-                entity.setPbctClsStatNm(dto.getPbctClsStatNm());
-                repository.save(entity);
-                count++;
-            }
-            return count;
+            System.out.println("XML 응답: " + xmlResponse);
         } catch (Exception e) {
-            logger.error("온비드 API 호출 오류: {}", e.getMessage());
-            return 0;
+            System.out.println("XML 응답 오류: " + e.getMessage());
         }
-    }
-    
-    public void fetchAndSaveOnbidData() {
-        try {
-            String xmlResponse = restTemplate.getForObject("https://api.onbid.co.kr/openapi/services/OnbidPblancListInfoService/getOnbidPblancListInfo?serviceKey=" + serviceKey + "&numOfRows=10&pageNo=1", String.class);
-            
-            XmlMapper xmlMapper = new XmlMapper();
-            OnbidItemDto itemDto = xmlMapper.readValue(xmlResponse, OnbidItemDto.class);
-            
-            OnbidEntity entity = convertToEntity(itemDto);
-            repository.save(entity);
-            
-            logger.info("온비드 데이터 저장 완료: {}", entity.getCltrMnmtNo());
-        } catch (Exception e) {
-            logger.error("온비드 API 호출 오류: {}", e.getMessage());
+        
+        KamcoApiResponse response = restTemplate.getForObject(url, KamcoApiResponse.class);
+        System.out.println("파싱된 응답: " + response);
+        
+        // 데이터 저장 (중복 처리)
+        if (response != null && response.getBody() != null && response.getBody().getItems() != null) {
+            List<KamcoItemDto> items = response.getBody().getItems().getItem();
+            if (items != null) {
+                int savedCount = 0;
+                int duplicateCount = 0;
+                
+                for (KamcoItemDto item : items) {
+                    if (item.getCltrMnmtNo() != null && !item.getCltrMnmtNo().trim().isEmpty()) {
+                        // 복합키 기반 중복 체크 (물건번호 + 입찰시작시간 + 최저입찰가)
+                        boolean isDuplicate = repository.existsByCompositeKey(
+                            item.getCltrMnmtNo(), 
+                            item.getPbctBegnDtm(), 
+                            item.getMinBidPrc()
+                        );
+                        
+                        if (!isDuplicate) {
+                            try {
+                                OnbidEntity entity = mapper.toEntity(item);
+                                repository.save(entity);
+                                savedCount++;
+                                System.out.println("저장됨: " + item.getCltrMnmtNo() + " (입찰시간: " + item.getPbctBegnDtm() + ", 가격: " + item.getMinBidPrc() + ")");
+                            } catch (Exception e) {
+                                System.out.println("저장 실패: " + item.getCltrMnmtNo() + " - " + e.getMessage());
+                            }
+                        } else {
+                            duplicateCount++;
+                            System.out.println("중복 스킵: " + item.getCltrMnmtNo() + " (입찰시간: " + item.getPbctBegnDtm() + ", 가격: " + item.getMinBidPrc() + ")");
+                        }
+                    }
+                }
+                
+                System.out.println("저장 완료: " + savedCount + "개, 중복 스킵: " + duplicateCount + "개");
+            }
         }
+        
+        return response;
     }
     
-    private OnbidEntity convertToEntity(OnbidItemDto dto) {
-        OnbidEntity entity = new OnbidEntity();
-        entity.setCltrMnmtNo(dto.getCltrMngtNo());
-        entity.setCltrNm(dto.getPbctNm());
-        entity.setSido(dto.getSido());
-        entity.setSgk(dto.getSgk());
-        entity.setPbctBegDtm(dto.getPbctBegDt());
-        entity.setPbctClsDtm(dto.getPbctClsDt());
-        entity.setMinBidPrc(dto.getOpenPrice());
-        return entity;
-    }
-    
-
-    
-    public List<OnbidEntity> getAllItems() {
-        return repository.findAll();
+    public List<OnbidEntity> getSavedItems(String sido) {
+        System.out.println("검색 요청 지역: " + sido);
+        List<OnbidEntity> results = repository.findBySido(sido);
+        System.out.println("검색 결과 개수: " + results.size());
+        
+        // 전체 데이터 확인
+        List<OnbidEntity> allData = repository.findAll();
+        System.out.println("전체 데이터 개수: " + allData.size());
+        
+        if (!allData.isEmpty()) {
+            System.out.println("첫 번째 데이터 주소: " + allData.get(0).getLdnmAdrs());
+        }
+        
+        return results;
     }
 }

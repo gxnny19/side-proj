@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jgg.side_proj.repository.OnbidRepository">
+
+    <insert id="save" parameterType="OnbidEntity">
+        INSERT IGNORE INTO onbid_item (
+            rnum, plnm_no, pbct_no, pbct_cdtn_no, cltr_no, cltr_hstr_no,
+            scrn_grp_cd, ctgr_full_nm, bid_mnmt_no, cltr_nm, cltr_mnmt_no,
+            ldnm_adrs, nmrd_adrs, ldnm_pnu, dpsl_mtd_cd, dpsl_mtd_nm,
+            bid_mtd_nm, min_bid_prc, apsl_ases_avg_amt, fee_rate,
+            pbct_begn_dtm, pbct_cls_dtm, pbct_cltr_stat_nm, uscbd_cnt, iqry_cnt,
+            goods_nm, created_at
+        ) VALUES (
+            #{rnum}, #{plnmNo}, #{pbctNo}, #{pbctCdtnNo}, #{cltrNo}, #{cltrHstrNo},
+            #{scrnGrpCd}, #{ctgrFullNm}, #{bidMnmtNo}, #{cltrNm}, #{cltrMnmtNo},
+            #{ldnmAdrs}, #{nmrdAdrs}, #{ldnmPnu}, #{dpslMtdCd}, #{dpslMtdNm},
+            #{bidMtdNm}, #{minBidPrc}, #{apslAsesAvgAmt}, #{feeRate},
+            #{pbctBegnDtm}, #{pbctClsDtm}, #{pbctCltrStatNm}, #{uscbdCnt}, #{iqryCnt},
+            #{goodsNm}, #{createdAt}
+        )
+    </insert>
+
+    <select id="findBySido" parameterType="String" resultType="OnbidEntity">
+        SELECT * FROM onbid_item 
+        WHERE (ldnm_adrs LIKE CONCAT('%', #{sido}, '%') OR cltr_nm LIKE CONCAT('%', #{sido}, '%'))
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findAll" resultType="OnbidEntity">
+        SELECT * FROM onbid_item 
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="existsByCltrMnmtNo" parameterType="String" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM onbid_item 
+        WHERE cltr_mnmt_no = #{cltrMnmtNo}
+    </select>
+
+    <select id="existsByCompositeKey" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM onbid_item 
+        WHERE cltr_mnmt_no = #{cltrMnmtNo} 
+        AND pbct_begn_dtm = #{pbctBegnDtm} 
+        AND min_bid_prc = #{minBidPrc}
+    </select>
+
+    <select id="countBySido" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM onbid_item 
+        WHERE ldnm_adrs LIKE CONCAT('%', #{sido}, '%')
+    </select>
+
+    <delete id="deleteByCltrMnmtNo" parameterType="String">
+        DELETE FROM onbid_item 
+        WHERE cltr_mnmt_no = #{cltrMnmtNo}
+    </delete>
+
+</mapper>

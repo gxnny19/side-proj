@@ -1,26 +1,36 @@
 package com.jgg.side_proj.entity;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "onbid_item")
-@Getter @Setter
+@Data
 public class OnbidEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String cltrMnmtNo;
-    private String cltrNm;
-    private String sido;
-    private String sgk;
-    private String pbctBegDtm;
-    private String pbctClsDtm;
-    private String minBidPrc;
+    private Integer rnum;
+    private Long plnmNo;
+    private Long pbctNo;
+    private Long pbctCdtnNo;
+    private Long cltrNo;
+    private Long cltrHstrNo;
+    private String scrnGrpCd;
     private String ctgrFullNm;
-    private String paslAssesAvgAmt;
-    private String pbctClsStatNm;
+    private String bidMnmtNo;
+    private String cltrNm;
+    private String cltrMnmtNo;
+    private String ldnmAdrs;
+    private String nmrdAdrs;
+    private String ldnmPnu;
+    private String dpslMtdCd;
+    private String dpslMtdNm;
+    private String bidMtdNm;
+    private Long minBidPrc;
+    private Long apslAsesAvgAmt;
+    private String feeRate;
+    private String pbctBegnDtm;
+    private String pbctClsDtm;
+    private String pbctCltrStatNm;
+    private Integer uscbdCnt;
+    private Integer iqryCnt;
+    private String goodsNm;
+    private LocalDateTime createdAt;
 }

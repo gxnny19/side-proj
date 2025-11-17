@@ -1,33 +1,42 @@
 package com.jgg.side_proj.controller;
 
+import com.jgg.side_proj.dto.KamcoApiResponse;
+import com.jgg.side_proj.dto.SearchRequestDto;
 import com.jgg.side_proj.entity.OnbidEntity;
 import com.jgg.side_proj.service.OnbidService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/onbid")
-@RequiredArgsConstructor
 public class OnbidController {
 
-    private final OnbidService service;
+    private final OnbidService onbidService;
 
-    @GetMapping("/save")
-    public String save(@RequestParam String sido) {
-        int cnt = service.saveItems(sido);
-        return cnt + "개 저장 완료!";
+    public OnbidController(OnbidService onbidService) {
+        this.onbidService = onbidService;
+    }
+
+    @GetMapping("/search")
+    public KamcoApiResponse search(@RequestParam(required = false) String sido,
+                                   @RequestParam(required = false) String sgk,
+                                   @RequestParam(required = false) Integer numOfRows) {
+        SearchRequestDto request = new SearchRequestDto();
+        request.setSido(sido);
+        request.setSgk(sgk);
+        if (numOfRows != null) {
+            request.setNumOfRows(numOfRows);
+        }
+        return onbidService.search(request);
     }
     
-    @GetMapping("/items")
-    public List<OnbidEntity> getItems() {
-        return service.getAllItems();
+    @PostMapping("/search")
+    public KamcoApiResponse searchByDto(@RequestBody SearchRequestDto request) {
+        return onbidService.search(request);
     }
     
-    @PostMapping("/fetch")
-    public String fetchAndSave() {
-        service.fetchAndSaveOnbidData();
-        return "Data fetch completed";
+    @GetMapping("/saved")
+    public List<OnbidEntity> getSavedItems(@RequestParam String sido) {
+        return onbidService.getSavedItems(sido);
     }
 }

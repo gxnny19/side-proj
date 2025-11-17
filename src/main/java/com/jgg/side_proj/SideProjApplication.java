@@ -1,12 +1,13 @@
 package com.jgg.side_proj;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
+@MapperScan("com.jgg.side_proj.repository")
 public class SideProjApplication {
 
-//    http://localhost:8081/swagger-ui/index.html
 	public static void main(String[] args) {
 		SpringApplication.run(SideProjApplication.class, args);
 	}
