@@ -73,17 +73,51 @@
         <h1>지역별 공매 정보 검색</h1>
         
         <div class="search-section">
-            <button class="btn" onclick="searchBySido('')" style="background: #28a745;">전국 검색</button>
-            <button class="btn" onclick="searchBySido('경상북도')">경상북도 검색</button>
-            <button class="btn" onclick="searchBySido('서울특별시')">서울특별시 검색</button>
+            <!-- <button class="btn" onclick="searchBySido('')" style="background: #28a745;">전국 검색</button> -->
+            <button class="btn" onclick="saveAndSearchGyeongbuk()">경상북도 검색</button>
+            <button class="btn" onclick="testGyeongbukApi()" style="background: #dc3545;">경상북도 API 테스트</button>
+            <!-- <button class="btn" onclick="searchBySido('서울특별시')">서울특별시 검색</button>
             <button class="btn" onclick="searchBySido('경기도')">경기도 검색</button>
-            <button class="btn" onclick="searchBySido('부산광역시')">부산광역시 검색</button>
+            <button class="btn" onclick="searchBySido('부산광역시')">부산광역시 검색</button> -->
         </div>
         
         <div id="results" class="results"></div>
     </div>
     
     <script>
+        function saveAndSearchGyeongbuk() {
+            document.getElementById('results').innerHTML = '<div class="loading">경상북도 데이터 저장 및 검색 중...</div>';
+            
+            fetch('/gyeongbuk', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResults('경상북도', data);
+            })
+            .catch(error => {
+                console.error('오류:', error);
+                document.getElementById('results').innerHTML = '<div class="loading">오류가 발생했습니다: ' + error.message + '</div>';
+            });
+        }
+        
+        function testGyeongbukApi() {
+            document.getElementById('results').innerHTML = '<div class="loading">API 테스트 중...</div>';
+            
+            fetch('/test-gyeongbuk')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('results').innerHTML = '<h2>API 원본 응답</h2><pre>' + data + '</pre>';
+            })
+            .catch(error => {
+                console.error('오류:', error);
+                document.getElementById('results').innerHTML = '<div class="loading">오류가 발생했습니다: ' + error.message + '</div>';
+            });
+        }
+        
         function searchBySido(sido) {
             console.log('버튼 클릭:', sido);
             document.getElementById('results').innerHTML = '<div class="loading">검색 중...</div>';

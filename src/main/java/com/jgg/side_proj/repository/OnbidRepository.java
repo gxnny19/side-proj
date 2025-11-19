@@ -24,4 +24,6 @@ public interface OnbidRepository {
     int countBySido(String sido);
     
     void deleteByCltrMnmtNo(String cltrMnmtNo);
+    
+    OnbidEntity findByCltrMnmtNo(String cltrMnmtNo);
 }

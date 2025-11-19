@@ -53,5 +53,11 @@
         DELETE FROM onbid_item 
         WHERE cltr_mnmt_no = #{cltrMnmtNo}
     </delete>
+    
+    <select id="findByCltrMnmtNo" parameterType="String" resultType="OnbidEntity">
+        SELECT * FROM onbid_item 
+        WHERE cltr_mnmt_no = #{cltrMnmtNo}
+        LIMIT 1
+    </select>
 
 </mapper>

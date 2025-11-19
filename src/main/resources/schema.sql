@@ -39,3 +39,11 @@ CREATE TABLE IF NOT EXISTS onbid_item (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_item 
 ON onbid_item (cltr_mnmt_no, pbct_begn_dtm, min_bid_prc);
+
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    name VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
